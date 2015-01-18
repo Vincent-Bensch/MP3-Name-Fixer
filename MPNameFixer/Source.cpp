@@ -125,8 +125,8 @@ void main()
 			}
 		}
 		filelist.close();
+		cout << "List closed" << endl;
 	}
-	cout << "List closed" << endl;
 	
 	cout << "Done" << endl;
 	cin.ignore();
