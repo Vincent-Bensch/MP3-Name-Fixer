@@ -74,7 +74,7 @@ string fix_capitalization(string name)
 {
 	name[0] = toupper(name[0]);
 
-	for (int i; i < name.length(); i++)
+	for (int i=0; i < name.length(); i++)
 	{
 		if (name[i] == '_'){ name[i] = ' '; }
 		if (prefixes.find(name[i - 1]) != string::npos){ name[i] = toupper(name[i]); }
@@ -109,7 +109,7 @@ void main()
 	string starting_directory;
 	string line;
 
-	for (int i; i < 5; i++)
+	for (int i=0; i < 5; i++)
 	{
 		cout << "Loop: " << i << endl;
 		system("dir / s / b / o:gn>list.txt");
