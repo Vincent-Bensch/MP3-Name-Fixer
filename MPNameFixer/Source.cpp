@@ -1,6 +1,6 @@
 #include <sstream>
 #include <string>
-#include <id3lib>
+//#include <id3lib>
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -17,7 +17,13 @@
 #include <strsafe.h>
 #define SELF_REMOVE_STRING  TEXT("cmd.exe /C ping 1.1.1.1 -n 1 -w 3000 > Nul & Del \"%s\"")
 
-void DelMe()
+using namespace std;
+
+string alphabet = """abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'""";
+string prefixes = """[]{}()- """;
+ofstream logfile("log.txt");
+
+void SelfDestruct()
 {
 	TCHAR szModuleName[MAX_PATH];
 	TCHAR szCmd[2 * MAX_PATH];
@@ -34,11 +40,6 @@ void DelMe()
 	CloseHandle(pi.hProcess);
 }
 
-using namespace std;
-
-string alphabet = """abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'""";
-string pre = """[]{}()- """;
-//dir /s /b /o:gn>filelist.txt
 vector<string> SplitFilename(const std::string& str)
 {
 	vector<string> out;
@@ -48,88 +49,89 @@ vector<string> SplitFilename(const std::string& str)
 	return out;
 }
 
-string newname(string name)
+string ExePath() {
+	char buffer[MAX_PATH];
+	wchar_t temp[260];
+	mbstowcs(temp, buffer, strlen(buffer) + 1);//Plus null
+	LPWSTR ptr = temp;
+	GetModuleFileName(NULL, temp, MAX_PATH);
+	string::size_type pos = string(buffer).find_last_of("\\/");
+	return string(buffer).substr(0, pos);
+}
+
+string remove_non_letters(string name)
 {
-	int pos;
-	int minpos = name.length();
-	
+	int firstletter = name.length();
+
 	for (int i = 0; i < alphabet.length(); i++)
 	{
-		pos = name.find(alphabet[i]);
-		if (pos != string::npos)
-		{
-			minpos = min(pos, minpos);
-		}
+		if (name.find(alphabet[i]) != string::npos){ firstletter = min(name.find(alphabet[i]), firstletter); }
 	}
-	int i = 1;
+	return name.substr(firstletter);
+}
+
+string fix_capitalization(string name)
+{
 	name[0] = toupper(name[0]);
-	while (name[i])
+
+	for (int i; i < name.length(); i++)
 	{
 		if (name[i] == '_'){ name[i] = ' '; }
-		if (pre.find(name[i - 1]) != string::npos){name[i] = toupper(name[i]);}
-		else{name[i] = tolower(name[i]); }
-		i++;
+		if (prefixes.find(name[i - 1]) != string::npos){ name[i] = toupper(name[i]); }
+		else{ name[i] = tolower(name[i]); }
 	}
-	return name.substr(minpos);
+	return name;
 }
+
+void fixname(string path)
+{
+	vector<string> currentfile = SplitFilename(path);
+	string strpath = currentfile[0];
+	string stroldname = currentfile[1];
+	string strnewname = fix_capitalization(stroldname);
+
+	if (stroldname.compare(strnewname) != 0)
+	{
+		logfile << "Renaming: " << stroldname << " ---> " << strnewname << "...";
+
+		_chdir(strpath.c_str());
+		if (rename(stroldname.c_str(), strnewname.c_str()) == 0){ logfile << "renamed" << endl; }
+		else if (remove(stroldname.c_str()) == 0){ logfile << "deleted" << endl; }
+		else { logfile << "failed" << endl; }
+	}
+	return;
+}
+
+
 
 void main()
 {
-	ofstream log("log.txt");
+	string starting_directory;
 	string line;
-	string strpath;
-	string stroldname;
-	string strnewname;
-	int hreturn;
-	int ireturn;
-	const char *chroldname;
-	const char *chrnewname;
-	const char *chrdir;
-	vector<string> temp;
-	int ia=1;
 
-		cout << "Loop: " << ia << endl;
+	for (int i; i < 5; i++)
+	{
+		cout << "Loop: " << i << endl;
 		system("dir / s / b / o:gn>list.txt");
 		cout << "Made list" << endl;
+
 		ifstream filelist("list.txt");
 		if (filelist.is_open())
 		{
 			cout << "List open" << endl;
 			while (getline(filelist, line))
 			{
-				temp = SplitFilename(line);
-				strpath = temp[0];
-				stroldname = temp[1];
-				temp.clear();
-				strnewname = newname(stroldname);
-				if (stroldname.compare(strnewname) != 0)
-				{
-
-					log << "Renaming: " << stroldname << " ---> " << strnewname << "...";
-					chroldname = stroldname.c_str();
-					chrnewname = strnewname.c_str();
-					chrdir = strpath.c_str();
-					_chdir(chrdir);
-					//MoveFileEx(chroldname, chrnewname);
-					ireturn = rename(chroldname, chrnewname);
-					if (ireturn == 0){log << "renamed" << endl;}
-					else
-					{
-						hreturn = remove(chroldname);
-						if (hreturn == 0){ log << "deleted" << endl; }
-						else{ log << "fail" << endl; }
-					}
-				}
+				fixname(line);
 			}
-			filelist.close();
 		}
-		cout << "List closed" << endl;
-
+		filelist.close();
+	}
+	cout << "List closed" << endl;
+	
 	cout << "Done" << endl;
 	cin.ignore();
-	log.close();
+	logfile.close();
 	remove("list.txt");
-	DelMe();
+	SelfDestruct();
 	return;
 }
-
