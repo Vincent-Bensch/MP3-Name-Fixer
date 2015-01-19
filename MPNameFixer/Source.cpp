@@ -88,7 +88,7 @@ void fixname(string path)
 	vector<string> currentfile = SplitFilename(path);
 	string strpath = currentfile[0];
 	string stroldname = currentfile[1];
-	string strnewname = fix_capitalization(stroldname);
+	string strnewname = remove_non_letters(fix_capitalization(stroldname));
 
 	if (stroldname.compare(strnewname) != 0)
 	{
