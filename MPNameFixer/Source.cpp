@@ -21,7 +21,9 @@ using namespace std;
 
 string alphabet = """abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'""";
 string prefixes = """[]{}()- """;
+string deviders = "-";
 ofstream logfile("log.txt");
+bool remove_artist = false;
 
 void SelfDestruct()
 {
@@ -83,18 +85,33 @@ string fix_capitalization(string name)
 	return name;
 }
 
+string remove_artist_name(string name)
+{
+	int deviderpos = name.length();
+
+	for (int i = 0; i < deviders.length(); i++)
+	{
+		if (name.find(deviders[i]) != string::npos){ deviderpos = min(name.find(deviders[i]), deviderpos); }
+	}
+
+	return name.substr(deviderpos);
+}
+
 void fixname(string path)
 {
 	vector<string> currentfile = SplitFilename(path);
 	string strpath = currentfile[0];
 	string stroldname = currentfile[1];
-	string strnewname = remove_non_letters(fix_capitalization(stroldname));
+	string strnewname;
+	if (remove_artist){ strnewname = remove_non_letters(fix_capitalization(stroldname)); }
+	else{ strnewname = remove_artist_name(remove_non_letters(fix_capitalization(stroldname))); }
 
 	if (stroldname.compare(strnewname) != 0)
 	{
 		logfile << "Renaming: " << stroldname << " ---> " << strnewname << "...";
 
 		_chdir(strpath.c_str());
+		
 		if (rename(stroldname.c_str(), strnewname.c_str()) == 0){ logfile << "renamed" << endl; }
 		else if (remove(stroldname.c_str()) == 0){ logfile << "deleted" << endl; }
 		else { logfile << "failed" << endl; }
@@ -108,7 +125,12 @@ void main()
 {
 	string starting_directory;
 	string line;
+	string answer;
 
+	cout << "Attempt to remove the first section(y/n)? ";	
+	cin >> answer;
+	if (answer == "y"){ remove_artist = true; }
+	
 	for (int i=0; i < 5; i++)
 	{
 		cout << "Loop: " << i << endl;
