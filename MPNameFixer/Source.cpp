@@ -94,10 +94,10 @@ string remove_artist_name(string name)
 
 	for (int i = 0; i < deviders.length(); i++)
 	{
-		if (name.find(deviders[i]) != string::npos){ deviderpos = min(name.find(deviders[i]), deviderpos); }
+		if (name.find(deviders[i]) != string::npos){ deviderpos = min(name.find(deviders[i] + 1), deviderpos); }
 	}
 
-	return name.substr(deviderpos + 1);
+	return name.substr(deviderpos);
 }
 
 void fixname(string path)
@@ -147,7 +147,7 @@ void main()
 	cin >> answer;
 	if (answer == "y"){ selfdelete = true; }
 
-	if (!cap_fix && !remove_artist && !remove_numbers)
+	if (cap_fix || remove_artist || remove_numbers)
 	{
 		for (int i = 0; i < 5; i++)
 		{
