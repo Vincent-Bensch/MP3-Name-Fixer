@@ -23,7 +23,10 @@ string alphabet = """abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'""";
 string prefixes = """[]{}()- """;
 string deviders = "-";
 ofstream logfile("log.txt");
+bool remove_numbers = false;
+bool cap_fix = false;
 bool remove_artist = false;
+bool selfdelete = false;
 
 void SelfDestruct()
 {
@@ -94,7 +97,7 @@ string remove_artist_name(string name)
 		if (name.find(deviders[i]) != string::npos){ deviderpos = min(name.find(deviders[i]), deviderpos); }
 	}
 
-	return name.substr(deviderpos);
+	return name.substr(deviderpos + 1);
 }
 
 void fixname(string path)
@@ -102,9 +105,10 @@ void fixname(string path)
 	vector<string> currentfile = SplitFilename(path);
 	string strpath = currentfile[0];
 	string stroldname = currentfile[1];
-	string strnewname;
-	if (remove_artist){ strnewname = remove_non_letters(fix_capitalization(stroldname)); }
-	else{ strnewname = remove_artist_name(remove_non_letters(fix_capitalization(stroldname))); }
+	string strnewname = stroldname;
+	if (remove_numbers){ strnewname = remove_non_letters(strnewname); }
+	if (remove_artist){ strnewname = remove_artist_name(stroldname); }
+	if (cap_fix){ strnewname = fix_capitalization(strnewname); }
 
 	if (stroldname.compare(strnewname) != 0)
 	{
@@ -127,34 +131,49 @@ void main()
 	string line;
 	string answer;
 
-	cout << "Attempt to remove the first section(y/n)? ";	
+	cout << "Attempt to remove the name of the Artist(y/n)? ";
 	cin >> answer;
 	if (answer == "y"){ remove_artist = true; }
-	
-	for (int i=0; i < 5; i++)
-	{
-		cout << "Loop: " << i << endl;
-		system("dir / s / b / o:gn>list.txt");
-		cout << "Made list" << endl;
 
-		ifstream filelist("list.txt");
-		if (filelist.is_open())
+	cout << "Fix capitalization(y/n)? ";
+	cin >> answer;
+	if (answer == "y"){ cap_fix = true; }
+
+	cout << "Remove numbers from front of names(y/n)? ";
+	cin >> answer;
+	if (answer == "y"){ remove_numbers = true; }
+
+	cout << "Self destruct(y/n)? ";
+	cin >> answer;
+	if (answer == "y"){ selfdelete = true; }
+
+	if (!cap_fix && !remove_artist && !remove_numbers)
+	{
+		for (int i = 0; i < 5; i++)
 		{
-			cout << "List open" << endl;
-			while (getline(filelist, line))
+			cout << "Loop: " << i << endl;
+			system("dir / s / b / o:gn>list.txt");
+			cout << "Made list" << endl;
+
+			ifstream filelist("list.txt");
+			if (filelist.is_open())
 			{
-				fixname(line);
+				cout << "List open" << endl;
+				while (getline(filelist, line))
+				{
+					fixname(line);
+				}
 			}
+			filelist.close();
+			cout << "List closed" << endl;
+			_chdir(starting_directory.c_str());
 		}
-		filelist.close();
-		cout << "List closed" << endl;
-		_chdir(starting_directory.c_str());
+
+		cout << "Done" << endl;
+		cin.ignore();
+		logfile.close();
+		remove("list.txt");
 	}
-	
-	cout << "Done" << endl;
-	cin.ignore();
-	logfile.close();
-	remove("list.txt");
-	SelfDestruct();
+	if (selfdelete){ SelfDestruct(); }
 	return;
 }
