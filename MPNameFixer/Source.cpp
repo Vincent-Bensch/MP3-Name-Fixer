@@ -94,21 +94,30 @@ string remove_artist_name(string name)
 
 	for (int i = 0; i < deviders.length(); i++)
 	{
-		if (name.find(deviders[i]) != string::npos){ deviderpos = min(name.find(deviders[i] + 1), deviderpos); }
+		if (name.find(deviders[i]) != string::npos){ deviderpos = min(name.find(deviders[i]), deviderpos); }
 	}
-
-	return name.substr(deviderpos);
+	if (deviderpos != name.length()){return name.substr(deviderpos + 1); }
+	else{ return name; }
 }
 
 void fixname(string path)
 {
+	if (remove_numbers && cap_fix &&& remove_artist)
+	{
+		cout << "all active";
+	}
+	else
+	{
+		cout << "not active";
+	}
+	cin.ignore();
 	vector<string> currentfile = SplitFilename(path);
 	string strpath = currentfile[0];
 	string stroldname = currentfile[1];
 	string strnewname = stroldname;
 	if (remove_numbers){ strnewname = remove_non_letters(strnewname); }
-	if (remove_artist){ strnewname = remove_artist_name(stroldname); }
 	if (cap_fix){ strnewname = fix_capitalization(strnewname); }
+	if (remove_artist){ strnewname = remove_artist_name(stroldname); }
 
 	if (stroldname.compare(strnewname) != 0)
 	{
@@ -119,6 +128,10 @@ void fixname(string path)
 		if (rename(stroldname.c_str(), strnewname.c_str()) == 0){ logfile << "renamed" << endl; }
 		else if (remove(stroldname.c_str()) == 0){ logfile << "deleted" << endl; }
 		else { logfile << "failed" << endl; }
+	}
+	else
+	{
+		logfile << "Not Renaming " << stroldname << " to " << strnewname << endl;
 	}
 	return;
 }
@@ -147,8 +160,8 @@ void main()
 	cin >> answer;
 	if (answer == "y"){ selfdelete = true; }
 
-	if (cap_fix || remove_artist || remove_numbers)
-	{
+	//if (cap_fix || remove_artist || remove_numbers)
+	//{
 		for (int i = 0; i < 5; i++)
 		{
 			cout << "Loop: " << i << endl;
@@ -173,7 +186,7 @@ void main()
 		cin.ignore();
 		logfile.close();
 		remove("list.txt");
-	}
+	//}
 	if (selfdelete){ SelfDestruct(); }
 	return;
 }
