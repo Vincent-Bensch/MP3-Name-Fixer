@@ -102,15 +102,15 @@ string remove_artist_name(string name)
 
 void fixname(string path)
 {
-	if (remove_numbers && cap_fix &&& remove_artist)
+	/*if (remove_numbers && cap_fix &&& remove_artist)
 	{
-		cout << "all active";
+		cout << "all active" << endl;
 	}
 	else
 	{
-		cout << "not active";
-	}
-	cin.ignore();
+		cout << "not active" << endl;
+	}*/
+	//cin.ignore();
 	vector<string> currentfile = SplitFilename(path);
 	string strpath = currentfile[0];
 	string stroldname = currentfile[1];
